@@ -20,19 +20,20 @@ class SeriousSpider(scrapy.Spider):
         for i, topic_url in enumerate(topic_urls):
             yield scrapy.Request(topic_url, callback=self.parse_topic, meta={'Topic': topic_lis[i]})
 
-    # Parse each list page that has recipes
+    # Parse each list page for a given topic that has recipes
     def parse_topic(self, response):
-        # begin = 'https://www.seriouseats.com/recipes/topics/cuisine'
         npages = int(response.xpath('//div[@class="ui-pagination-jump-links"]//a[3]/text()').extract_first())
         next_urls = [response.url + '?page=%d#recipes' %page_num for page_num in range(2,npages+1) ]
 
-        for url in next_urls[:2]:
+        for url in next_urls:
             yield scrapy.Request(url, callback=self.parse_list_page, meta= response.meta)
 
-
+    # Get the link and subtopic for each recipe(total of 24) on a list page and pass to next parse method
     def parse_list_page(self, response):
-        # get link and cuisine for each recipe on list page
+        
         print("parsing list page")
+
+        # Examples: {Cuisine: Chinese, Method: Braising, Ingredient: Tomato, Meal: Sides}
         subtopic = response.xpath('//div[@class="module"]//a[@class="category-link"]/span/text()').extract()[:24]
 
         recipes = response.xpath('//div[@class="module__wrapper"]/a[@class="module__image-container module__link"]/@href').extract()[:24]
@@ -40,8 +41,7 @@ class SeriousSpider(scrapy.Spider):
         for i, recipe in enumerate(recipes):
             yield scrapy.Request(recipe, callback=self.parse_recipe, meta={'Subtopic': subtopic[i], 'Link': recipes[i], 'Topic': response.meta['Topic']})
 
-
-
+    # Parse an individual recipe page for various features, including title, servings, and ingredients
     def parse_recipe(self, response):
         # save response
         #  get all my data
@@ -51,8 +51,7 @@ class SeriousSpider(scrapy.Spider):
         link = response.meta['Link']
 
 
-        # Get title as a string, 
-        # Uses join to avoid incomplete data caused by formatting
+        # Get title as a string, Uses join to avoid incomplete data caused by formatting tags
         try:
             title = " ".join((response.xpath('//h1[@class="title recipe-title"]//text()').extract()))
         except:
@@ -89,7 +88,6 @@ class SeriousSpider(scrapy.Spider):
             total_time = response.xpath('//li/span[@class="info"]/text()').extract()[1]
         except:
             total_time = ""
-
 
         try:
             rating = float(response.xpath('//span[@class="info rating-value"]/text()').extract_first())

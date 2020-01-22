@@ -15,7 +15,6 @@ class SeriousEatsItem(scrapy.Item):
     author = scrapy.Field()
     photographer = scrapy.Field()
     link = scrapy.Field()
-    cuisine = scrapy.Field()
     pub_date = scrapy.Field()
     servings = scrapy.Field()
     active_time = scrapy.Field()
