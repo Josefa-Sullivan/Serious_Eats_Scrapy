@@ -1,2 +1,6 @@
 .ipynb_checkpoints/
 __pycache__/
+test_run.csv
+split_ingredients_fn_test.py
+cosine_similarity_test.py
+.ppt
